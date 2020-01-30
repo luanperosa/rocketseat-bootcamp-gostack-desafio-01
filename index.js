@@ -2,25 +2,30 @@ const express = require('express');
 
 const app = express();
 
-const projects = [{
-  id: 0,
-  title: "Easy Hair",
-  tasks: ["Deploy"]
-}];
+const projects = [];
 
 app.use(express.json())
 
+function checkReqs(req, res, next){
+  console.count('Requisição realizada')
+  console.time('Tempo da Requisição');
+  console.log('url da requisição', req.url);
+  console.log('metodo da requisição', req.method)
+  console.timeEnd('Tempo da Requisição');
+  return next();
+}
+
 function checkIdExist(req, res, next) {
   const { id } = req.params;
-  const project = projects.find(idProjets => idProjets.id === id)
-
+  const project = projects.find(idProject => idProject.id == id);
+  
   if(!project){
     return res.status(400).json({ message: "Id User Not Exist" })
   }
   return next();
 }
 
-app.post('/projects', (req, res) => {
+app.post('/projects', checkReqs, (req, res) => {
   const { id, title } = req.body;
 
   projects.push({
@@ -31,36 +36,37 @@ app.post('/projects', (req, res) => {
   return res.json(projects)
 })
 
-app.get('/projects', (req, res) => {
+app.get('/projects', checkReqs, (req, res) => {
   return res.json(projects)
 })
 
-app.put('/projects/:id', checkIdExist, (req, res) => {
+app.put('/projects/:id', checkReqs, checkIdExist, (req, res) => {
   const { id } = req.params;
   const { title } = req.body;
-   
-  const project = projects.find(idProjets => idProjets.id === id)
-  
-  projects[id].title = project.title = title;
-  
-  return res.json(projects[id])
+
+  const project = projects.find(idProject => idProject.id == id);
+
+  project.title = title;
+
+  return res.json(project);
 });
 
-app.delete('/projects/:id', checkIdExist, (req, res) => {
+app.delete('/projects/:id', checkReqs, checkIdExist, (req, res) => {
   const { id } = req.params;
 
   projects.splice(id, 1);
   return res.json(projects)
 });
 
-app.post('/projects/:id/tasks', checkIdExist, (req, res) => {
-  const { title } = req.body;
+app.post('/projects/:id/tasks', checkReqs, checkIdExist, (req, res) => {
   const { id } = req.params;
+  const { title } = req.body;
 
-  const project = projects.find(idProjets => idProjets.id === id)
-  projects[0].tasks.push(title)
-  return res.json(projects)
+  const project = projects.find(idProject => idProject.id == id);
 
+  project.tasks.push(title);
+
+  return res.json(project);
 });
 
 
